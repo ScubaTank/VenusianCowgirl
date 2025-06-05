@@ -21,8 +21,7 @@ public class MenuState : BaseState
 
     public override void Update()
     {
-        //Here, you'd check for input for starting the game. I can't be bothered right now.
-        _context.ChangeState(new GameplayState(_context));
+        //TODO: have a way to transition from here to GameplayState.
     }
 
     public override void FixedUpdate()

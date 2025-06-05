@@ -4,34 +4,45 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private CharacterController _charController;
-    private Vector3 _inputVector; //The unprocessed vector that the player is generating
-    private Vector3 _outputVector; //the processed, final vector that should be applied to the player;
+
 
     [Header("Movement Attributes")]
     [SerializeField] private float m_gravity = -10f;
     [SerializeField] private float m_playerSpeed = 20f;
+    private Vector3 _inputVector; //The unprocessed vector that the player is generating
+    private Vector3 _outputVector; //the processed, final vector that should be applied to the player;
 
     [Header("Mouse Attributes")]
     [SerializeField] private float m_sensitivity = 1.5f;
     [SerializeField] private float m_smoothing = 10f;
-
     private float _xMousePos;
-    private float _smoothedMousePos; 
+    private float _smoothedMousePos;
     private float _currLookingPos;
+
+    [Header("Camera Animator")]
+    [SerializeField] private Animator m_camera;
+    private bool _isMoving;
+
+    private GameStateManager _gameStateManager;
 
 
     void Start()
     {
         _charController = GetComponent<CharacterController>();
+        _gameStateManager = ServiceLocator.instance.GetService<GameStateManager>();   
     }
 
     void Update()
     {
         GetInput();
-        MovePlayer();
+        if (_gameStateManager.CurrentStateName != "DeadState") //make sure youre not dead...
+        {
+            MovePlayer();
+            AnimateCamera();
+        }
     }
 
-    void GetInput()
+    private void GetInput()
     {
         //grab raw mouse, apply sensitivity and smoothing, then set _smoothedMousePos to a lerp between the current and next position. 
         _xMousePos = Input.GetAxisRaw("Mouse X");
@@ -45,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
         _outputVector = (_inputVector * m_playerSpeed) + (Vector3.up * m_gravity);
     }
 
-    void MovePlayer()
+    private void MovePlayer()
     {
         //move the current looking position to the _smoothedMousePos
         _currLookingPos += _smoothedMousePos;
@@ -53,5 +64,20 @@ public class PlayerMovement : MonoBehaviour
         transform.localRotation = Quaternion.AngleAxis(_currLookingPos, transform.up);
 
         _charController.Move(_outputVector * Time.deltaTime);
+
     }
+
+    private void AnimateCamera()
+    {
+        if (_charController.velocity.magnitude > 0.1f)
+        {
+            _isMoving = true;
+        }
+        else
+        {
+            _isMoving = false;
+        }
+
+        m_camera.SetBool("isMoving", _isMoving);
+    } 
 }

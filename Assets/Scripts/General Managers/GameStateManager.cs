@@ -10,6 +10,11 @@ public class GameStateManager : Singleton<GameStateManager>
 
     public string CurrentStateName => _currentState?.GetType().Name;
 
+    void Awake()
+    {
+        InitializeSingleton(this);
+    }
+
     private void Start()
     {
         //Check if we are in the samplescene. otherwise, assume normal gameplay.
@@ -22,7 +27,7 @@ public class GameStateManager : Singleton<GameStateManager>
         {
             ChangeState(new MenuState(this));
         }
-        
+
     }
 
     private void Update()
