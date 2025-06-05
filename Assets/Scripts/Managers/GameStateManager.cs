@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 //Keeps track of the current state of the game. A persistent singleton created from launch.
@@ -11,7 +12,17 @@ public class GameStateManager : Singleton<GameStateManager>
 
     private void Start()
     {
-        ChangeState(new MenuState(this));
+        //Check if we are in the samplescene. otherwise, assume normal gameplay.
+        //TODO: replace this with a proper debug mode.
+        if (SceneManager.GetActiveScene().name == "SampleScene")
+        {
+            ChangeState(new GameplayState(this));
+        }
+        else
+        {
+            ChangeState(new MenuState(this));
+        }
+        
     }
 
     private void Update()
