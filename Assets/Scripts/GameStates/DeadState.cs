@@ -14,12 +14,14 @@ public class DeadState : BaseState
     {
         Debug.Log("Entering Dead State");
 
+        _context.playerMovement.SetCanMove(false);
         //TODO: Death Animation or something...
     }
 
     public override void Exit()
     {
         Debug.Log("Exiting Dead State");
+        _context.playerMovement.SetCanMove(true);
     }
 
     public override void Update()

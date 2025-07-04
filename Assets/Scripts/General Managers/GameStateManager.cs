@@ -10,9 +10,20 @@ public class GameStateManager : Singleton<GameStateManager>
 
     public string CurrentStateName => _currentState?.GetType().Name;
 
+    [Header("Player")]
+    [SerializeField] private PlayerMovement m_playerMovement;
+
+    public PlayerMovement playerMovement => m_playerMovement;
+
     void Awake()
     {
         InitializeSingleton(this);
+
+        if (m_playerMovement == null)
+        {
+            m_playerMovement = FindFirstObjectByType<PlayerMovement>();
+            Debug.Log("Assigned playermovement!");
+        }
     }
 
     private void Start()
@@ -59,4 +70,5 @@ public class GameStateManager : Singleton<GameStateManager>
             Debug.LogWarning("No previous state available to revert to!");
         }
     }
+
 }

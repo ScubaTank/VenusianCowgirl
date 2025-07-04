@@ -8,7 +8,8 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Movement Attributes")]
     [SerializeField] private float m_gravity = -10f;
-    [SerializeField] private float m_playerSpeed = 20f;
+    [SerializeField] private float m_playerSpeed = 10f;
+    [SerializeField] private float m_momentumDamping = 5f;
     private Vector3 _inputVector; //The unprocessed vector that the player is generating
     private Vector3 _outputVector; //the processed, final vector that should be applied to the player;
 
@@ -23,23 +24,22 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Animator m_camera;
     private bool _isMoving;
 
-    private GameStateManager _gameStateManager;
-
+    private bool _canMove = true;
 
     void Start()
     {
         _charController = GetComponent<CharacterController>();
-        _gameStateManager = ServiceLocator.instance.GetService<GameStateManager>();   
     }
 
     void Update()
     {
         GetInput();
-        if (_gameStateManager.CurrentStateName != "DeadState") //make sure youre not dead...
+        if (_canMove)
         {
             MovePlayer();
-            AnimateCamera();
         }
+
+        m_camera.SetBool("isMoving", _isMoving);
     }
 
     private void GetInput()
@@ -49,10 +49,21 @@ public class PlayerMovement : MonoBehaviour
         _xMousePos *= m_sensitivity * m_smoothing;
         _smoothedMousePos = Mathf.Lerp(_smoothedMousePos, _xMousePos, 1f / m_smoothing);
 
-        //grab raw inputvector, normalize so diagonals arent big, set direction to this gameobject's rotation, apply speed and gravity and set to _outputVector.
-        _inputVector = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
-        _inputVector.Normalize();
-        _inputVector = transform.TransformDirection(_inputVector);
+        //TODO: CLEAN THIS SHIT UP
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
+        {
+            //grab raw inputvector, normalize so diagonals arent big, set direction to this gameobject's rotation, apply speed and gravity and set to _outputVector.
+            _inputVector = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+            _inputVector.Normalize();
+            _inputVector = transform.TransformDirection(_inputVector);
+            _isMoving = true;
+        }
+        else
+        {
+            //if not moving
+            _inputVector = Vector3.Lerp(_inputVector, Vector3.zero, m_momentumDamping * Time.deltaTime);
+            _isMoving = false;
+        }
         _outputVector = (_inputVector * m_playerSpeed) + (Vector3.up * m_gravity);
     }
 
@@ -67,17 +78,10 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
-    private void AnimateCamera()
-    {
-        if (_charController.velocity.magnitude > 0.1f)
-        {
-            _isMoving = true;
-        }
-        else
-        {
-            _isMoving = false;
-        }
 
-        m_camera.SetBool("isMoving", _isMoving);
-    } 
+
+    public void SetCanMove(bool canMove)
+    {
+        _canMove = canMove;
+    }
 }
